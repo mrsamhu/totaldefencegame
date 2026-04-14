@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Operation Nexus: Total Defence</title>
+    <style>
+        :root {
+            --military: #4CAF50;
+            --civil: #FF9800;
+            --economic: #2196F3;
+            --social: #9C27B0;
+            --psychological: #E91E63;
+            --digital: #00BCD4;
+            --bg-color: #f4f5f7;
+            --card-bg: #ffffff;
+            --text-dark: #333333;
+        }
+
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-color); margin: 0; padding: 20px; color: var(--text-dark); display: flex; flex-direction: column; align-items: center; }
+        
+        header { width: 100%; max-width: 900px; display: flex; justify-content: space-between; align-items: center; background: white; padding: 15px 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        h1 { margin: 0; font-size: 24px; color: #b71c1c; }
+        .stats { display: flex; gap: 20px; font-weight: bold; font-size: 18px; align-items: center; }
+        
+        .crisis-container { display: flex; align-items: center; gap: 10px; }
+        progress { height: 20px; width: 150px; }
+        progress::-webkit-progress-value { background-color: #d32f2f; }
+        
+        main { display: flex; gap: 20px; width: 100%; max-width: 900px; margin-bottom: 20px; }
+        
+        .panel { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); flex: 1; }
+        .threat-panel { border-left: 5px solid #d32f2f; }
+        
+        .req-badges { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; }
+        .badge { padding: 5px 10px; border-radius: 5px; color: white; font-weight: bold; font-size: 14px; }
+
+        .play-area { min-height: 150px; border: 2px dashed #ccc; border-radius: 10px; padding: 15px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: center; margin-bottom: 15px; background: #fafafa;}
+        .controls { display: flex; justify-content: center; gap: 10px; }
+        button { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.2s; }
+        .btn-resolve { background-color: #4CAF50; color: white; }
+        .btn-resolve:hover { background-color: #388E3C; }
+        .btn-pass { background-color: #9e9e9e; color: white; }
+        .btn-pass:hover { background-color: #757575; }
+        
+        .hand-container { width: 100%; max-width: 900px; }
+        .hand { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
+        
+        .card { width: 120px; height: 160px; border-radius: 8px; cursor: pointer; color: white; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; font-weight: bold; padding: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.2s; user-select: none;}
+        .card:hover { transform: translateY(-5px); }
+        .card.Military { background-color: var(--military); }
+        .card.Civil { background-color: var(--civil); }
+        .card.Economic { background-color: var(--economic); }
+        .card.Social { background-color: var(--social); }
+        .card.Psychological { background-color: var(--psychological); }
+        .card.Digital { background-color: var(--digital); }
+
+        #overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); color: white; justify-content: center; align-items: center; flex-direction: column; z-index: 100; }
+        #overlay h2 { font-size: 40px; margin-bottom: 10px; }
+        #overlay button { margin-top: 20px; background: #fff; color: #000; padding: 15px 30px; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🛡️ Operation Nexus</h1>
+        <div class="stats">
+            <div>Score: <span id="score">0</span></div>
+            <div class="crisis-container">
+                Crisis Meter: <progress id="crisisBar" value="0" max="10"></progress> <span id="crisisText">0/10</span>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="panel threat-panel">
+            <h2 style="margin-top:0;">Current Threat</h2>
+            <h3 id="threatTitle">Loading...</h3>
+            <p id="threatDesc">...</p>
+            <strong>Required Defence Pillars:</strong>
+            <div class="req-badges" id="threatReqs"></div>
+        </div>
+
+        <div class="panel action-panel">
+            <h2 style="margin-top:0;">Action Area</h2>
+            <p style="font-size: 14px; margin-top:-10px;">Click cards from your hand to play them here.</p>
+            <div class="play-area" id="playArea"></div>
+            <div class="controls">
+                <button class="btn-resolve" onclick="resolveThreat()">Resolve Threat</button>
+                <button class="btn-pass" onclick="takeDamage()">Take Hit (-2 Crisis)</button>
+            </div>
+        </div>
+    </main>
+
+    <div class="hand-container">
+        <h2 style="text-align: center;">Your Hand (National Resources)</h2>
+        <div class="hand" id="playerHand"></div>
+    </div>
+
+    <div id="overlay">
+        <h2 id="endTitle">Game Over</h2>
+        <p id="endDesc">The nation was overwhelmed.</p>
+        <button onclick="location.reload()">Play Again</button>
+    </div>
+
+    <script>
+        // Game Data
+        const pillars = ['Military', 'Civil', 'Economic', 'Social', 'Psychological', 'Digital'];
+        
+        const threats = [
+            { title: "Ransomware Attack on Hospitals", desc: "Hackers have locked critical healthcare data. The public is panicking.", reqs: ['Digital', 'Digital', 'Psychological'] },
+            { title: "Unattended Baggage at MRT", desc: "A suspicious package halts train lines during rush hour.", reqs: ['Military', 'Civil'] },
+            { title: "Viral Fake News Campaign", desc: "A coordinated bot network is spreading rumors to incite racial tension.", reqs: ['Psychological', 'Psychological', 'Social'] },
+            { title: "Global Supply Chain Blockade", desc: "Essential food imports are delayed indefinitely due to a geopolitical conflict.", reqs: ['Economic', 'Economic', 'Social'] },
+            { title: "Coordinated Infrastructure Hack", desc: "Power grids and water supplies are being targeted simultaneously.", reqs: ['Digital', 'Civil', 'Military'] }
+        ];
+
+        // State Variables
+        let crisis = 0;
+        let score = 0;
+        let hand = [];
+        let played = [];
+        let currentThreatIndex = 0;
+
+        // Initialize Game
+        function init() {
+            drawThreat();
+            drawHand(6);
+            updateUI();
+        }
+
+        // Draw a new threat
+        function drawThreat() {
+            if (currentThreatIndex >= threats.length) {
+                endGame(true); // Win condition
+                return;
+            }
+            played = [];
+            updateUI();
+        }
+
+        // Generate random hand
+        function drawHand(amount) {
+            hand = [];
+            for(let i=0; i<amount; i++) {
+                hand.push(pillars[Math.floor(Math.random() * pillars.length)]);
+            }
+        }
+
+        // Move card from hand to play area
+        function playCard(index) {
+            played.push(hand[index]);
+            hand.splice(index, 1);
+            updateUI();
+        }
+
+        // Move card from play area back to hand
+        function unplayCard(index) {
+            hand.push(played[index]);
+            played.splice(index, 1);
+            updateUI();
+        }
+
+        // Check if played cards meet threat requirements
+        function resolveThreat() {
+            const threat = threats[currentThreatIndex];
+            
+            // Create a temporary array of requirements to check off
+            let reqsToMet = [...threat.reqs];
+            let success = true;
+
+            for (let req of reqsToMet) {
+                const index = played.indexOf(req);
+                if (index > -1) {
+                    played.splice(index, 1); // consumed
+                } else {
+                    success = false;
+                    break;
+                }
+            }
+
+            if (success) {
+                score += 100;
+                currentThreatIndex++;
+                drawHand(6); // Replenish hand
+                drawThreat();
+            } else {
+                alert("Not enough correct Total Defence pillars deployed! Try again or take the hit.");
+            }
+        }
+
+        // Player skips/fails threat
+        function takeDamage() {
+            crisis += 2;
+            currentThreatIndex++;
+            if (crisis >= 10) {
+                endGame(false);
+            } else {
+                drawHand(6);
+                drawThreat();
+            }
+            updateUI();
+        }
+
+        // End Game logic
+        function endGame(win) {
+            const overlay = document.getElementById('overlay');
+            const endTitle = document.getElementById('endTitle');
+            const endDesc = document.getElementById('endDesc');
+            
+            overlay.style.display = "flex";
+            if (win) {
+                endTitle.innerText = "Victory!";
+                endTitle.style.color = "#4CAF50";
+                endDesc.innerText = `You successfully defended the nation! Final Score: ${score}`;
+            } else {
+                endTitle.innerText = "Crisis Overload!";
+                endTitle.style.color = "#d32f2f";
+                endDesc.innerText = "The nation's defenses collapsed. Singapore needs you to be better prepared next time.";
+            }
+        }
+
+        // Render everything to the screen
+        function updateUI() {
+            document.getElementById('score').innerText = score;
+            document.getElementById('crisisBar').value = crisis;
+            document.getElementById('crisisText').innerText = `${crisis}/10`;
+
+            // Render Threat
+            if(currentThreatIndex < threats.length) {
+                const threat = threats[currentThreatIndex];
+                document.getElementById('threatTitle').innerText = threat.title;
+                document.getElementById('threatDesc').innerText = threat.desc;
+                
+                const reqsDiv = document.getElementById('threatReqs');
+                reqsDiv.innerHTML = "";
+                threat.reqs.forEach(req => {
+                    reqsDiv.innerHTML += `<div class="badge ${req}">${req}</div>`;
+                });
+            }
+
+            // Render Hand
+            const handDiv = document.getElementById('playerHand');
+            handDiv.innerHTML = "";
+            hand.forEach((card, i) => {
+                handDiv.innerHTML += `<div class="card ${card}" onclick="playCard(${i})">${card}</div>`;
+            });
+
+            // Render Play Area
+            const playDiv = document.getElementById('playArea');
+            playDiv.innerHTML = "";
+            played.forEach((card, i) => {
+                playDiv.innerHTML += `<div class="card ${card}" onclick="unplayCard(${i})">${card}</div>`;
+            });
+        }
+
+        // Start the game
+        init();
+    </script>
+</body>
+</html>
