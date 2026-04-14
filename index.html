@@ -30,14 +30,16 @@
         
         main { display: flex; gap: 20px; width: 100%; max-width: 900px; margin-bottom: 20px; }
         
-        .panel { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); flex: 1; }
+        .panel { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); flex: 1; position: relative; }
         .threat-panel { border-left: 5px solid #d32f2f; }
         
         .req-badges { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; }
         .badge { padding: 5px 10px; border-radius: 5px; color: white; font-weight: bold; font-size: 14px; }
+        .badge.Hidden { background-color: #9e9e9e; color: #fff; }
 
         .play-area { min-height: 150px; border: 2px dashed #ccc; border-radius: 10px; padding: 15px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: center; margin-bottom: 15px; background: #fafafa;}
-        .controls { display: flex; justify-content: center; gap: 10px; }
+        .controls { display: flex; justify-content: space-between; align-items: center; }
+        .btn-group { display: flex; gap: 10px; }
         button { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.2s; }
         .btn-resolve { background-color: #4CAF50; color: white; }
         .btn-resolve:hover { background-color: #388E3C; }
@@ -56,9 +58,16 @@
         .card.Psychological { background-color: var(--psychological); }
         .card.Digital { background-color: var(--digital); }
 
-        #overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); color: white; justify-content: center; align-items: center; flex-direction: column; z-index: 100; }
-        #overlay h2 { font-size: 40px; margin-bottom: 10px; }
-        #overlay button { margin-top: 20px; background: #fff; color: #000; padding: 15px 30px; }
+        /* Modals */
+        #overlay, #feedbackModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); color: white; justify-content: center; align-items: center; flex-direction: column; z-index: 100; text-align: center; padding: 20px;}
+        #overlay h2, #feedbackModal h2 { font-size: 40px; margin-bottom: 10px; }
+        #overlay button, #feedbackModal button { margin-top: 20px; background: #fff; color: #000; padding: 15px 30px; font-size: 18px; }
+        
+        .feedback-content { background: white; color: #333; padding: 30px; border-radius: 10px; max-width: 600px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .feedback-content h2 { color: #333; font-size: 28px;}
+        .feedback-explanation { background: #f0f0f0; padding: 15px; border-radius: 8px; font-size: 16px; margin-top: 15px; text-align: left; line-height: 1.5; }
+        
+        #attemptsDisplay { font-weight: bold; color: #d32f2f; }
     </style>
 </head>
 <body>
@@ -87,8 +96,11 @@
             <p style="font-size: 14px; margin-top:-10px;">Click cards from your hand to play them here.</p>
             <div class="play-area" id="playArea"></div>
             <div class="controls">
-                <button class="btn-resolve" onclick="resolveThreat()">Resolve Threat</button>
-                <button class="btn-pass" onclick="takeDamage()">Take Hit (-2 Crisis)</button>
+                <span id="attemptsDisplay">Attempts: 0/3</span>
+                <div class="btn-group">
+                    <button class="btn-resolve" onclick="resolveThreat()">Resolve Threat</button>
+                    <button class="btn-pass" onclick="forceFail()">Take Hit (-2 Crisis)</button>
+                </div>
             </div>
         </div>
     </main>
@@ -98,6 +110,15 @@
         <div class="hand" id="playerHand"></div>
     </div>
 
+    <div id="feedbackModal">
+        <div class="feedback-content">
+            <h2 id="feedbackTitle">Status</h2>
+            <p id="feedbackAnswers" style="font-weight: bold; font-size: 18px; color: #d32f2f;"></p>
+            <div class="feedback-explanation" id="feedbackExplanation">Explanation goes here.</div>
+            <button onclick="nextRound()">Continue to Next Threat</button>
+        </div>
+    </div>
+
     <div id="overlay">
         <h2 id="endTitle">Game Over</h2>
         <p id="endDesc">The nation was overwhelmed.</p>
@@ -105,42 +126,65 @@
     </div>
 
     <script>
-        // Game Data
         const pillars = ['Military', 'Civil', 'Economic', 'Social', 'Psychological', 'Digital'];
         
         const threats = [
-            { title: "Ransomware Attack on Hospitals", desc: "Hackers have locked critical healthcare data. The public is panicking.", reqs: ['Digital', 'Digital', 'Psychological'] },
-            { title: "Unattended Baggage at MRT", desc: "A suspicious package halts train lines during rush hour.", reqs: ['Military', 'Civil'] },
-            { title: "Viral Fake News Campaign", desc: "A coordinated bot network is spreading rumors to incite racial tension.", reqs: ['Psychological', 'Psychological', 'Social'] },
-            { title: "Global Supply Chain Blockade", desc: "Essential food imports are delayed indefinitely due to a geopolitical conflict.", reqs: ['Economic', 'Economic', 'Social'] },
-            { title: "Coordinated Infrastructure Hack", desc: "Power grids and water supplies are being targeted simultaneously.", reqs: ['Digital', 'Civil', 'Military'] }
+            { 
+                title: "Ransomware Attack on Hospitals", 
+                desc: "Hackers have locked critical healthcare data. The public is panicking over delayed treatments.", 
+                reqs: ['Digital', 'Digital', 'Psychological'],
+                explanation: "Digital Defence is heavily needed to trace the hackers and restore the encrypted healthcare data. Psychological Defence is required to manage public fear and ensure citizens remain calm while the systems are down."
+            },
+            { 
+                title: "Unattended Baggage at MRT", 
+                desc: "A suspicious package halts train lines during rush hour, causing chaos.", 
+                reqs: ['Military', 'Civil'],
+                explanation: "Military Defence (like the SAF Chemical, Biological, Radiological and Explosive Defence Group) is needed to safely neutralize potential explosives. Civil Defence (SCDF and Police) manages the safe evacuation of civilians and crowd control."
+            },
+            { 
+                title: "Viral Fake News Campaign", 
+                desc: "A coordinated bot network is spreading rumors online to incite racial tension.", 
+                reqs: ['Psychological', 'Psychological', 'Social'],
+                explanation: "Psychological Defence is critical here to ensure citizens critically evaluate the media they consume and do not easily fall for lies. Social Defence is needed because the community must actively maintain racial and religious harmony despite the instigation."
+            },
+            { 
+                title: "Global Supply Chain Blockade", 
+                desc: "Essential food and medical imports are delayed indefinitely due to a geopolitical conflict abroad.", 
+                reqs: ['Economic', 'Economic', 'Social'],
+                explanation: "Economic Defence is heavily relied upon to tap into national stockpiles and quickly find alternative global suppliers. Social Defence ensures citizens look out for one another and do not engage in panic buying or hoarding."
+            },
+            { 
+                title: "Coordinated Infrastructure Hack", 
+                desc: "Power grids and water purification plants are being targeted simultaneously.", 
+                reqs: ['Digital', 'Civil', 'Military'],
+                explanation: "Digital Defence is needed to repel the cyberattack on the infrastructure. Military Defence secures the physical plants from secondary physical attacks, while Civil Defence manages the emergency fallout if power or water is temporarily lost."
+            }
         ];
 
-        // State Variables
         let crisis = 0;
         let score = 0;
         let hand = [];
         let played = [];
         let currentThreatIndex = 0;
+        let attempts = 0;
+        const maxAttempts = 3;
 
-        // Initialize Game
         function init() {
             drawThreat();
             drawHand(6);
             updateUI();
         }
 
-        // Draw a new threat
         function drawThreat() {
             if (currentThreatIndex >= threats.length) {
-                endGame(true); // Win condition
+                endGame(true);
                 return;
             }
             played = [];
+            attempts = 0;
             updateUI();
         }
 
-        // Generate random hand
         function drawHand(amount) {
             hand = [];
             for(let i=0; i<amount; i++) {
@@ -148,32 +192,31 @@
             }
         }
 
-        // Move card from hand to play area
         function playCard(index) {
             played.push(hand[index]);
             hand.splice(index, 1);
             updateUI();
         }
 
-        // Move card from play area back to hand
         function unplayCard(index) {
             hand.push(played[index]);
             played.splice(index, 1);
             updateUI();
         }
 
-        // Check if played cards meet threat requirements
         function resolveThreat() {
+            if (played.length === 0) return;
+
             const threat = threats[currentThreatIndex];
             
-            // Create a temporary array of requirements to check off
-            let reqsToMet = [...threat.reqs];
+            // Create a copy of played cards to safely check without deleting them yet (Bug Fix)
+            let playedCopy = [...played];
             let success = true;
 
-            for (let req of reqsToMet) {
-                const index = played.indexOf(req);
+            for (let req of threat.reqs) {
+                const index = playedCopy.indexOf(req);
                 if (index > -1) {
-                    played.splice(index, 1); // consumed
+                    playedCopy.splice(index, 1); 
                 } else {
                     success = false;
                     break;
@@ -182,28 +225,59 @@
 
             if (success) {
                 score += 100;
-                currentThreatIndex++;
-                drawHand(6); // Replenish hand
-                drawThreat();
+                // Put any extra cards played back into the hand
+                hand = hand.concat(playedCopy);
+                played = [];
+                showFeedback(true);
             } else {
-                alert("Not enough correct Total Defence pillars deployed! Try again or take the hit.");
+                attempts++;
+                if (attempts >= maxAttempts) {
+                    forceFail();
+                } else {
+                    alert(`Incorrect combination. You have ${maxAttempts - attempts} attempt(s) remaining.`);
+                    updateUI();
+                }
             }
         }
 
-        // Player skips/fails threat
-        function takeDamage() {
+        function forceFail() {
             crisis += 2;
+            showFeedback(false);
+        }
+
+        function showFeedback(isSuccess) {
+            const threat = threats[currentThreatIndex];
+            const modal = document.getElementById('feedbackModal');
+            const title = document.getElementById('feedbackTitle');
+            const answers = document.getElementById('feedbackAnswers');
+            const explanation = document.getElementById('feedbackExplanation');
+
+            modal.style.display = 'flex';
+            explanation.innerText = threat.explanation;
+
+            if (isSuccess) {
+                title.innerText = "✅ Threat Neutralized!";
+                title.style.color = "#4CAF50";
+                answers.innerText = "";
+            } else {
+                title.innerText = "❌ Defenses Breached!";
+                title.style.color = "#d32f2f";
+                answers.innerText = `Required Pillars: ${threat.reqs.join(', ')}`;
+            }
+        }
+
+        function nextRound() {
+            document.getElementById('feedbackModal').style.display = 'none';
             currentThreatIndex++;
+            
             if (crisis >= 10) {
                 endGame(false);
             } else {
                 drawHand(6);
                 drawThreat();
             }
-            updateUI();
         }
 
-        // End Game logic
         function endGame(win) {
             const overlay = document.getElementById('overlay');
             const endTitle = document.getElementById('endTitle');
@@ -221,13 +295,12 @@
             }
         }
 
-        // Render everything to the screen
         function updateUI() {
             document.getElementById('score').innerText = score;
             document.getElementById('crisisBar').value = crisis;
             document.getElementById('crisisText').innerText = `${crisis}/10`;
+            document.getElementById('attemptsDisplay').innerText = `Attempts: ${attempts}/${maxAttempts}`;
 
-            // Render Threat
             if(currentThreatIndex < threats.length) {
                 const threat = threats[currentThreatIndex];
                 document.getElementById('threatTitle').innerText = threat.title;
@@ -236,18 +309,17 @@
                 const reqsDiv = document.getElementById('threatReqs');
                 reqsDiv.innerHTML = "";
                 threat.reqs.forEach(req => {
-                    reqsDiv.innerHTML += `<div class="badge ${req}">${req}</div>`;
+                    // Show placeholders so they know how many cards are needed
+                    reqsDiv.innerHTML += `<div class="badge Hidden">?</div>`; 
                 });
             }
 
-            // Render Hand
             const handDiv = document.getElementById('playerHand');
             handDiv.innerHTML = "";
             hand.forEach((card, i) => {
                 handDiv.innerHTML += `<div class="card ${card}" onclick="playCard(${i})">${card}</div>`;
             });
 
-            // Render Play Area
             const playDiv = document.getElementById('playArea');
             playDiv.innerHTML = "";
             played.forEach((card, i) => {
@@ -255,7 +327,6 @@
             });
         }
 
-        // Start the game
         init();
     </script>
 </body>
