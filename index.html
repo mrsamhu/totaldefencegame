@@ -1,70 +1,214 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Escape the Command Center: SG Deterrence</title>
-    <style>
-        :root {
-            --bg-color: #0b0f19;
-            --panel-bg: #1a2235;
-            --text-main: #e2e8f0;
-            --accent-blue: #3b82f6;
-            --accent-green: #10b981;
-            --accent-red: #ef4444;
-            --border-color: #334155;
-            --terminal-bg: #000000;
-            --terminal-text: #22c55e;
-            --hint-color: #eab308;
+<script>
+    const pillars = ['Military', 'Civil', 'Economic', 'Social', 'Psychological', 'Digital'];
+    
+    const threats = [
+        { 
+            title: "Ransomware Attack on Hospitals", 
+            desc: "Hackers have locked critical healthcare data. The public is panicking over delayed treatments.", 
+            reqs: ['Digital', 'Digital', 'Psychological'],
+            explanation: "Digital Defence is heavily needed to trace the hackers and restore the encrypted healthcare data. Psychological Defence is required to manage public fear and ensure citizens remain calm while the systems are down."
+        },
+        { 
+            title: "Unattended Baggage at MRT", 
+            desc: "A suspicious package halts train lines during rush hour, causing chaos.", 
+            reqs: ['Military', 'Civil'],
+            explanation: "Military Defence (like the SAF Chemical, Biological, Radiological and Explosive Defence Group) is needed to safely neutralize potential explosives. Civil Defence (SCDF and Police) manages the safe evacuation of civilians and crowd control."
+        },
+        { 
+            title: "Viral Fake News Campaign", 
+            desc: "A coordinated bot network is spreading rumors online to incite racial tension.", 
+            reqs: ['Psychological', 'Psychological', 'Social'],
+            explanation: "Psychological Defence is critical here to ensure citizens critically evaluate the media they consume and do not easily fall for lies. Social Defence is needed because the community must actively maintain racial and religious harmony despite the instigation."
+        },
+        { 
+            title: "Global Supply Chain Blockade", 
+            desc: "Essential food and medical imports are delayed indefinitely due to a geopolitical conflict abroad.", 
+            reqs: ['Economic', 'Economic', 'Social'],
+            explanation: "Economic Defence is heavily relied upon to tap into national stockpiles and quickly find alternative global suppliers. Social Defence ensures citizens look out for one another and do not engage in panic buying or hoarding."
+        },
+        { 
+            title: "Coordinated Infrastructure Hack", 
+            desc: "Power grids and water purification plants are being targeted simultaneously.", 
+            reqs: ['Digital', 'Civil', 'Military'],
+            explanation: "Digital Defence is needed to repel the cyberattack on the infrastructure. Military Defence secures the physical plants from secondary physical attacks, while Civil Defence manages the emergency fallout if power or water is temporarily lost."
+        }
+    ];
+
+    let crisis = 0;
+    let score = 0;
+    let hand = [];
+    let played = [];
+    let currentThreatIndex = 0;
+    let attempts = 0;
+    const maxAttempts = 3;
+
+    function init() {
+        drawThreat();
+    }
+
+    function drawThreat() {
+        if (currentThreatIndex >= threats.length) {
+            endGame(true);
+            return;
+        }
+        played = [];
+        attempts = 0;
+        drawHand(6); // Now drawn AFTER the threat is loaded so we know what cards to guarantee
+        updateUI();
+    }
+
+    // UPDATED FUNCTION: Guarantees required cards, fills the rest randomly, then shuffles
+    function drawHand(amount) {
+        hand = [];
+        const currentThreat = threats[currentThreatIndex];
+
+        // 1. Add the guaranteed required cards
+        if (currentThreat && currentThreat.reqs) {
+            for (let req of currentThreat.reqs) {
+                hand.push(req);
+            }
         }
 
-        * { box-sizing: border-box; font-family: 'Courier New', Courier, monospace; }
+        // 2. Fill the remaining slots with random cards
+        const remainingSlots = amount - hand.length;
+        for(let i = 0; i < remainingSlots; i++) {
+            hand.push(pillars[Math.floor(Math.random() * pillars.length)]);
+        }
+
+        // 3. Shuffle the deck so it's not obvious which cards were guaranteed
+        for (let i = hand.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [hand[i], hand[j]] = [hand[j], hand[i]];
+        }
+    }
+
+    function playCard(index) {
+        played.push(hand[index]);
+        hand.splice(index, 1);
+        updateUI();
+    }
+
+    function unplayCard(index) {
+        hand.push(played[index]);
+        played.splice(index, 1);
+        updateUI();
+    }
+
+    function resolveThreat() {
+        if (played.length === 0) return;
+
+        const threat = threats[currentThreatIndex];
+        let playedCopy = [...played];
+        let success = true;
+
+        for (let req of threat.reqs) {
+            const index = playedCopy.indexOf(req);
+            if (index > -1) {
+                playedCopy.splice(index, 1); 
+            } else {
+                success = false;
+                break;
+            }
+        }
+
+        if (success) {
+            score += 100;
+            showFeedback(true);
+        } else {
+            attempts++;
+            if (attempts >= maxAttempts) {
+                forceFail();
+            } else {
+                alert(`Incorrect combination. You have ${maxAttempts - attempts} attempt(s) remaining.`);
+                updateUI();
+            }
+        }
+    }
+
+    function forceFail() {
+        crisis += 2;
+        showFeedback(false);
+    }
+
+    function showFeedback(isSuccess) {
+        const threat = threats[currentThreatIndex];
+        const modal = document.getElementById('feedbackModal');
+        const title = document.getElementById('feedbackTitle');
+        const answers = document.getElementById('feedbackAnswers');
+        const explanation = document.getElementById('feedbackExplanation');
+
+        modal.style.display = 'flex';
+        explanation.innerText = threat.explanation;
+
+        if (isSuccess) {
+            title.innerText = "✅ Threat Neutralized!";
+            title.style.color = "#4CAF50";
+            answers.innerText = "";
+        } else {
+            title.innerText = "❌ Defenses Breached!";
+            title.style.color = "#d32f2f";
+            answers.innerText = `Required Pillars: ${threat.reqs.join(', ')}`;
+        }
+    }
+
+    function nextRound() {
+        document.getElementById('feedbackModal').style.display = 'none';
+        currentThreatIndex++;
         
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
+        if (crisis >= 10) {
+            endGame(false);
+        } else {
+            drawThreat();
+        }
+    }
+
+    function endGame(win) {
+        const overlay = document.getElementById('overlay');
+        const endTitle = document.getElementById('endTitle');
+        const endDesc = document.getElementById('endDesc');
+        
+        overlay.style.display = "flex";
+        if (win) {
+            endTitle.innerText = "Victory!";
+            endTitle.style.color = "#4CAF50";
+            endDesc.innerText = `You successfully defended the nation! Final Score: ${score}`;
+        } else {
+            endTitle.innerText = "Crisis Overload!";
+            endTitle.style.color = "#d32f2f";
+            endDesc.innerText = "The nation's defenses collapsed. Singapore needs you to be better prepared next time.";
+        }
+    }
+
+    function updateUI() {
+        document.getElementById('score').innerText = score;
+        document.getElementById('crisisBar').value = crisis;
+        document.getElementById('crisisText').innerText = `${crisis}/10`;
+        document.getElementById('attemptsDisplay').innerText = `Attempts: ${attempts}/${maxAttempts}`;
+
+        if(currentThreatIndex < threats.length) {
+            const threat = threats[currentThreatIndex];
+            document.getElementById('threatTitle').innerText = threat.title;
+            document.getElementById('threatDesc').innerText = threat.desc;
+            
+            const reqsDiv = document.getElementById('threatReqs');
+            reqsDiv.innerHTML = "";
+            threat.reqs.forEach(req => {
+                reqsDiv.innerHTML += `<div class="badge Hidden">?</div>`; 
+            });
         }
 
-        .game-container {
-            background-color: var(--panel-bg);
-            border: 2px solid var(--border-color);
-            border-radius: 12px;
-            max-width: 800px;
-            width: 100%;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            position: relative;
-            overflow: hidden;
-        }
+        const handDiv = document.getElementById('playerHand');
+        handDiv.innerHTML = "";
+        hand.forEach((card, i) => {
+            handDiv.innerHTML += `<div class="card ${card}" onclick="playCard(${i})">${card}</div>`;
+        });
 
-        .header {
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 15px;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+        const playDiv = document.getElementById('playArea');
+        playDiv.innerHTML = "";
+        played.forEach((card, i) => {
+            playDiv.innerHTML += `<div class="card ${card}" onclick="unplayCard(${i})">${card}</div>`;
+        });
+    }
 
-        h1 { margin: 0; font-size: 20px; color: var(--accent-blue); text-transform: uppercase; }
-        .room-indicator { font-weight: bold; font-size: 16px; color: var(--accent-green); text-align: right;}
-
-        .scenario-box {
-            background: #0f172a;
-            padding: 20px;
-            border-left: 4px solid var(--accent-blue);
-            border-radius: 4px;
-            margin-bottom: 20px;
-            line-height: 1.6;
-            font-size: 16px;
-        }
-
-        /* Mini-Game Terminal Styles */
-        .minigame-container {
-            background-color
+    init();
+</script>
