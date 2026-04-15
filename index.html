@@ -1,4 +1,131 @@
-<script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Operation Nexus: Total Defence</title>
+    <style>
+        :root {
+            --military: #4CAF50;
+            --civil: #FF9800;
+            --economic: #2196F3;
+            --social: #9C27B0;
+            --psychological: #E91E63;
+            --digital: #00BCD4;
+            --bg-color: #f4f5f7;
+            --card-bg: #ffffff;
+            --text-dark: #333333;
+        }
+
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-color); margin: 0; padding: 20px; color: var(--text-dark); display: flex; flex-direction: column; align-items: center; }
+        
+        header { width: 100%; max-width: 900px; display: flex; justify-content: space-between; align-items: center; background: white; padding: 15px 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        h1 { margin: 0; font-size: 24px; color: #b71c1c; }
+        .stats { display: flex; gap: 20px; font-weight: bold; font-size: 18px; align-items: center; }
+        
+        .crisis-container { display: flex; align-items: center; gap: 10px; }
+        progress { height: 20px; width: 150px; }
+        progress::-webkit-progress-value { background-color: #d32f2f; }
+        
+        main { display: flex; gap: 20px; width: 100%; max-width: 900px; margin-bottom: 20px; }
+        
+        .panel { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); flex: 1; position: relative; }
+        .threat-panel { border-left: 5px solid #d32f2f; }
+        
+        .req-badges { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; }
+        .badge { padding: 5px 10px; border-radius: 5px; color: white; font-weight: bold; font-size: 14px; }
+        .badge.Hidden { background-color: #9e9e9e; color: #fff; }
+
+        .play-area { min-height: 150px; border: 2px dashed #ccc; border-radius: 10px; padding: 15px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: center; margin-bottom: 15px; background: #fafafa;}
+        .controls { display: flex; justify-content: space-between; align-items: center; }
+        .btn-group { display: flex; gap: 10px; }
+        button { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.2s; }
+        .btn-resolve { background-color: #4CAF50; color: white; }
+        .btn-resolve:hover { background-color: #388E3C; }
+        .btn-pass { background-color: #9e9e9e; color: white; }
+        .btn-pass:hover { background-color: #757575; }
+        
+        .hand-container { width: 100%; max-width: 900px; }
+        .hand { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
+        
+        .card { width: 120px; height: 160px; border-radius: 8px; cursor: pointer; color: white; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; font-weight: bold; padding: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.2s; user-select: none;}
+        .card:hover { transform: translateY(-5px); }
+        .card.Military { background-color: var(--military); }
+        .card.Civil { background-color: var(--civil); }
+        .card.Economic { background-color: var(--economic); }
+        .card.Social { background-color: var(--social); }
+        .card.Psychological { background-color: var(--psychological); }
+        .card.Digital { background-color: var(--digital); }
+
+        /* Modals */
+        #overlay, #feedbackModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); color: white; justify-content: center; align-items: center; flex-direction: column; z-index: 100; text-align: center; padding: 20px;}
+        #overlay h2, #feedbackModal h2 { font-size: 40px; margin-bottom: 10px; }
+        #overlay button, #feedbackModal button { margin-top: 20px; background: #fff; color: #000; padding: 15px 30px; font-size: 18px; }
+        
+        .feedback-content { background: white; color: #333; padding: 30px; border-radius: 10px; max-width: 600px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .feedback-content h2 { color: #333; font-size: 28px;}
+        .feedback-explanation { background: #f0f0f0; padding: 15px; border-radius: 8px; font-size: 16px; margin-top: 15px; text-align: left; line-height: 1.5; }
+        
+        #attemptsDisplay { font-weight: bold; color: #d32f2f; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🛡️ Operation Nexus</h1>
+        <div class="stats">
+            <div>Score: <span id="score">0</span></div>
+            <div class="crisis-container">
+                Crisis Meter: <progress id="crisisBar" value="0" max="10"></progress> <span id="crisisText">0/10</span>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="panel threat-panel">
+            <h2 style="margin-top:0;">Current Threat</h2>
+            <h3 id="threatTitle">Loading...</h3>
+            <p id="threatDesc">...</p>
+            <strong>Required Defence Pillars:</strong>
+            <div class="req-badges" id="threatReqs"></div>
+        </div>
+
+        <div class="panel action-panel">
+            <h2 style="margin-top:0;">Action Area</h2>
+            <p style="font-size: 14px; margin-top:-10px;">Click cards from your hand to play them here.</p>
+            <div class="play-area" id="playArea"></div>
+            <div class="controls">
+                <span id="attemptsDisplay">Attempts: 0/3</span>
+                <div class="btn-group">
+                    <button class="btn-resolve" onclick="resolveThreat()">Resolve Threat</button>
+                    <button class="btn-pass" onclick="forceFail()">Take Hit (-2 Crisis)</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="hand-container">
+        <h2 style="text-align: center;">Your Hand (National Resources)</h2>
+        <div class="hand" id="playerHand"></div>
+    </div>
+
+    <div id="feedbackModal">
+        <div class="feedback-content">
+            <h2 id="feedbackTitle">Status</h2>
+            <p id="feedbackAnswers" style="font-weight: bold; font-size: 18px; color: #d32f2f;"></p>
+            <div class="feedback-explanation" id="feedbackExplanation">Explanation goes here.</div>
+            <button onclick="nextRound()">Continue to Next Threat</button>
+        </div>
+    </div>
+
+    <div id="overlay">
+        <h2 id="endTitle">Game Over</h2>
+        <p id="endDesc">The nation was overwhelmed.</p>
+        <button onclick="location.reload()">Play Again</button>
+    </div>
+
+    <script>
     const pillars = ['Military', 'Civil', 'Economic', 'Social', 'Psychological', 'Digital'];
     
     const threats = [
@@ -212,3 +339,5 @@
 
     init();
 </script>
+</body>
+</html>
