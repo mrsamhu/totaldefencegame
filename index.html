@@ -3,340 +3,581 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Operation Nexus: Total Defence</title>
+    <title>Escape the Command Center: SG Deterrence</title>
     <style>
         :root {
-            --military: #4CAF50;
-            --civil: #FF9800;
-            --economic: #2196F3;
-            --social: #9C27B0;
-            --psychological: #E91E63;
-            --digital: #00BCD4;
-            --bg-color: #f4f5f7;
-            --card-bg: #ffffff;
-            --text-dark: #333333;
+            --bg-color: #0b0f19;
+            --panel-bg: #1a2235;
+            --text-main: #e2e8f0;
+            --accent-blue: #3b82f6;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --border-color: #334155;
+            --terminal-bg: #000000;
+            --terminal-text: #22c55e;
+            --hint-color: #eab308;
         }
 
-        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: var(--bg-color); margin: 0; padding: 20px; color: var(--text-dark); display: flex; flex-direction: column; align-items: center; }
+        * { box-sizing: border-box; font-family: 'Courier New', Courier, monospace; }
         
-        header { width: 100%; max-width: 900px; display: flex; justify-content: space-between; align-items: center; background: white; padding: 15px 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        h1 { margin: 0; font-size: 24px; color: #b71c1c; }
-        .stats { display: flex; gap: 20px; font-weight: bold; font-size: 18px; align-items: center; }
-        
-        .crisis-container { display: flex; align-items: center; gap: 10px; }
-        progress { height: 20px; width: 150px; }
-        progress::-webkit-progress-value { background-color: #d32f2f; }
-        
-        main { display: flex; gap: 20px; width: 100%; max-width: 900px; margin-bottom: 20px; }
-        
-        .panel { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); flex: 1; position: relative; }
-        .threat-panel { border-left: 5px solid #d32f2f; }
-        
-        .req-badges { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; }
-        .badge { padding: 5px 10px; border-radius: 5px; color: white; font-weight: bold; font-size: 14px; }
-        .badge.Hidden { background-color: #9e9e9e; color: #fff; }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
 
-        .play-area { min-height: 150px; border: 2px dashed #ccc; border-radius: 10px; padding: 15px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: center; margin-bottom: 15px; background: #fafafa;}
-        .controls { display: flex; justify-content: space-between; align-items: center; }
-        .btn-group { display: flex; gap: 10px; }
-        button { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.2s; }
-        .btn-resolve { background-color: #4CAF50; color: white; }
-        .btn-resolve:hover { background-color: #388E3C; }
-        .btn-pass { background-color: #9e9e9e; color: white; }
-        .btn-pass:hover { background-color: #757575; }
-        
-        .hand-container { width: 100%; max-width: 900px; }
-        .hand { display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
-        
-        .card { width: 120px; height: 160px; border-radius: 8px; cursor: pointer; color: white; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; font-weight: bold; padding: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.2s; user-select: none;}
-        .card:hover { transform: translateY(-5px); }
-        .card.Military { background-color: var(--military); }
-        .card.Civil { background-color: var(--civil); }
-        .card.Economic { background-color: var(--economic); }
-        .card.Social { background-color: var(--social); }
-        .card.Psychological { background-color: var(--psychological); }
-        .card.Digital { background-color: var(--digital); }
+        .game-container {
+            background-color: var(--panel-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            max-width: 800px;
+            width: 100%;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            position: relative;
+            overflow: hidden;
+        }
 
-        /* Modals */
-        #overlay, #feedbackModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); color: white; justify-content: center; align-items: center; flex-direction: column; z-index: 100; text-align: center; padding: 20px;}
-        #overlay h2, #feedbackModal h2 { font-size: 40px; margin-bottom: 10px; }
-        #overlay button, #feedbackModal button { margin-top: 20px; background: #fff; color: #000; padding: 15px 30px; font-size: 18px; }
+        .header {
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        h1 { margin: 0; font-size: 20px; color: var(--accent-blue); text-transform: uppercase; }
+        .room-indicator { font-weight: bold; font-size: 16px; color: var(--accent-green); text-align: right;}
+
+        .scenario-box {
+            background: #0f172a;
+            padding: 20px;
+            border-left: 4px solid var(--accent-blue);
+            border-radius: 4px;
+            margin-bottom: 20px;
+            line-height: 1.6;
+            font-size: 16px;
+        }
+
+        /* Mini-Game Terminal Styles */
+        .minigame-container {
+            background-color: var(--terminal-bg);
+            border: 1px solid var(--terminal-text);
+            padding: 30px 20px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            color: var(--terminal-text);
+            text-align: center;
+        }
         
-        .feedback-content { background: white; color: #333; padding: 30px; border-radius: 10px; max-width: 600px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-        .feedback-content h2 { color: #333; font-size: 28px;}
-        .feedback-explanation { background: #f0f0f0; padding: 15px; border-radius: 8px; font-size: 16px; margin-top: 15px; text-align: left; line-height: 1.5; }
+        .scrambled-word { font-size: 28px; letter-spacing: 8px; margin: 20px 0; font-weight: bold; }
         
-        #attemptsDisplay { font-weight: bold; color: #d32f2f; }
+        .decrypt-input {
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid var(--terminal-text);
+            color: var(--terminal-text);
+            font-size: 18px;
+            text-align: center;
+            outline: none;
+            text-transform: uppercase;
+            width: 250px;
+            font-family: 'Courier New', Courier, monospace;
+            padding-bottom: 5px;
+        }
+
+        .decrypt-btn {
+            background-color: var(--terminal-text);
+            color: var(--terminal-bg);
+            border: none;
+            padding: 8px 15px;
+            margin-left: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+        .decrypt-btn:hover { background-color: #16a34a; }
+
+        .error-msg { color: var(--accent-red); font-size: 14px; margin-top: 15px; display: none; font-weight: bold; }
+        
+        .anagram-hint-btn {
+            background: none;
+            border: 1px solid var(--hint-color);
+            color: var(--hint-color);
+            margin-top: 25px;
+            padding: 6px 12px;
+            font-size: 12px;
+            cursor: pointer;
+            border-radius: 3px;
+            text-transform: uppercase;
+        }
+        .anagram-hint-btn:hover { background: rgba(234, 179, 8, 0.1); }
+        .anagram-hint-text {
+            color: var(--hint-color);
+            font-size: 14px;
+            margin-top: 10px;
+            display: none;
+            font-style: italic;
+        }
+
+        .intel-hint {
+            display: none;
+            background-color: rgba(34, 197, 94, 0.1);
+            border-left: 4px solid var(--accent-green);
+            padding: 15px;
+            margin-bottom: 20px;
+            color: var(--text-main);
+        }
+        .intel-hint span { color: var(--accent-green); font-weight: bold; }
+
+        .options-container { display: none; flex-direction: column; gap: 15px; }
+
+        .option-btn {
+            background-color: transparent;
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            text-align: left;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 15px;
+            transition: all 0.2s ease;
+            line-height: 1.4;
+        }
+
+        .option-btn:hover {
+            border-color: var(--accent-blue);
+            background-color: rgba(59, 130, 246, 0.1);
+            transform: translateX(5px);
+        }
+        .option-btn span { font-weight: bold; color: var(--accent-blue); margin-right: 10px; }
+
+        #outcomeScreen {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(11, 15, 25, 0.95);
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            text-align: center;
+            z-index: 10;
+        }
+
+        .outcome-title { font-size: 32px; margin-bottom: 15px; text-transform: uppercase; }
+        .success-text { color: var(--accent-green); }
+        .fail-text { color: var(--accent-red); }
+        .outcome-desc { font-size: 18px; line-height: 1.6; max-width: 600px; margin-bottom: 30px; }
+        .action-btn { background-color: var(--text-main); color: var(--bg-color); border: none; padding: 12px 25px; font-size: 18px; font-weight: bold; cursor: pointer; border-radius: 4px; transition: 0.2s; }
+        .action-btn:hover { background-color: #cbd5e1; }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>🛡️ Operation Nexus</h1>
-        <div class="stats">
-            <div>Score: <span id="score">0</span></div>
-            <div class="crisis-container">
-                Crisis Meter: <progress id="crisisBar" value="0" max="10"></progress> <span id="crisisText">0/10</span>
-            </div>
-        </div>
-    </header>
-
-    <main>
-        <div class="panel threat-panel">
-            <h2 style="margin-top:0;">Current Threat</h2>
-            <h3 id="threatTitle">Loading...</h3>
-            <p id="threatDesc">...</p>
-            <strong>Required Defence Pillars:</strong>
-            <div class="req-badges" id="threatReqs"></div>
-        </div>
-
-        <div class="panel action-panel">
-            <h2 style="margin-top:0;">Action Area</h2>
-            <p style="font-size: 14px; margin-top:-10px;">Click cards from your hand to play them here.</p>
-            <div class="play-area" id="playArea"></div>
-            <div class="controls">
-                <span id="attemptsDisplay">Attempts: 0/3</span>
-                <div class="btn-group">
-                    <button class="btn-resolve" onclick="resolveThreat()">Resolve Threat</button>
-                    <button class="btn-pass" onclick="forceFail()">Take Hit (-2 Crisis)</button>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <div class="hand-container">
-        <h2 style="text-align: center;">Your Hand (National Resources)</h2>
-        <div class="hand" id="playerHand"></div>
-    </div>
-
-    <div id="feedbackModal">
-        <div class="feedback-content">
-            <h2 id="feedbackTitle">Status</h2>
-            <p id="feedbackAnswers" style="font-weight: bold; font-size: 18px; color: #d32f2f;"></p>
-            <div class="feedback-explanation" id="feedbackExplanation">Explanation goes here.</div>
-            <button onclick="nextRound()">Continue to Next Threat</button>
-        </div>
-    </div>
-
-    <div id="overlay">
-        <h2 id="endTitle">Game Over</h2>
-        <p id="endDesc">The nation was overwhelmed.</p>
-        <button onclick="location.reload()">Play Again</button>
-    </div>
-<script>
-    const pillars = ['Military', 'Civil', 'Economic', 'Social', 'Psychological', 'Digital'];
-    
-    const threats = [
-        { 
-            title: "Ransomware Attack on Hospitals", 
-            desc: "Hackers have locked critical healthcare data. The public is panicking over delayed treatments.", 
-            reqs: ['Digital', 'Digital', 'Psychological'],
-            explanation: "Digital Defence is heavily needed to trace the hackers and restore the encrypted healthcare data. Psychological Defence is required to manage public fear and ensure citizens remain calm while the systems are down."
-        },
-        { 
-            title: "Unattended Baggage at MRT", 
-            desc: "A suspicious package halts train lines during rush hour, causing chaos.", 
-            reqs: ['Military', 'Civil'],
-            explanation: "Military Defence (like the SAF Chemical, Biological, Radiological and Explosive Defence Group) is needed to safely neutralize potential explosives. Civil Defence (SCDF and Police) manages the safe evacuation of civilians and crowd control."
-        },
-        { 
-            title: "Viral Fake News Campaign", 
-            desc: "A coordinated bot network is spreading rumors online to incite racial tension.", 
-            reqs: ['Psychological', 'Psychological', 'Social'],
-            explanation: "Psychological Defence is critical here to ensure citizens critically evaluate the media they consume and do not easily fall for lies. Social Defence is needed because the community must actively maintain racial and religious harmony despite the instigation."
-        },
-        { 
-            title: "Global Supply Chain Blockade", 
-            desc: "Essential food and medical imports are delayed indefinitely due to a geopolitical conflict abroad.", 
-            reqs: ['Economic', 'Economic', 'Social'],
-            explanation: "Economic Defence is heavily relied upon to tap into national stockpiles and quickly find alternative global suppliers. Social Defence ensures citizens look out for one another and do not engage in panic buying or hoarding."
-        },
-        { 
-            title: "Coordinated Infrastructure Hack", 
-            desc: "Power grids and water purification plants are being targeted simultaneously.", 
-            reqs: ['Digital', 'Civil', 'Military'],
-            explanation: "Digital Defence is needed to repel the cyberattack on the infrastructure. Military Defence secures the physical plants from secondary physical attacks, while Civil Defence manages the emergency fallout if power or water is temporarily lost."
-        }
-    ];
-
-    let crisis = 0;
-    let score = 0;
-    let hand = [];
-    let played = [];
-    let currentThreatIndex = 0;
-    let attempts = 0;
-    const maxAttempts = 3;
-
-    function init() {
-        drawThreat();
-    }
-
-    function drawThreat() {
-        if (currentThreatIndex >= threats.length) {
-            endGame(true);
-            return;
-        }
-        played = [];
-        attempts = 0;
-        drawHand(6); // Now drawn AFTER the threat is loaded so we know what cards to guarantee
-        updateUI();
-    }
-
-    // UPDATED FUNCTION: Guarantees required cards, fills the rest randomly, then shuffles
-    function drawHand(amount) {
-        hand = [];
-        const currentThreat = threats[currentThreatIndex];
-
-        // 1. Add the guaranteed required cards
-        if (currentThreat && currentThreat.reqs) {
-            for (let req of currentThreat.reqs) {
-                hand.push(req);
-            }
-        }
-
-        // 2. Fill the remaining slots with random cards
-        const remainingSlots = amount - hand.length;
-        for(let i = 0; i < remainingSlots; i++) {
-            hand.push(pillars[Math.floor(Math.random() * pillars.length)]);
-        }
-
-        // 3. Shuffle the deck so it's not obvious which cards were guaranteed
-        for (let i = hand.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [hand[i], hand[j]] = [hand[j], hand[i]];
-        }
-    }
-
-    function playCard(index) {
-        played.push(hand[index]);
-        hand.splice(index, 1);
-        updateUI();
-    }
-
-    function unplayCard(index) {
-        hand.push(played[index]);
-        played.splice(index, 1);
-        updateUI();
-    }
-
-    function resolveThreat() {
-        if (played.length === 0) return;
-
-        const threat = threats[currentThreatIndex];
-        let playedCopy = [...played];
-        let success = true;
-
-        for (let req of threat.reqs) {
-            const index = playedCopy.indexOf(req);
-            if (index > -1) {
-                playedCopy.splice(index, 1); 
-            } else {
-                success = false;
-                break;
-            }
-        }
-
-        if (success) {
-            score += 100;
-            showFeedback(true);
-        } else {
-            attempts++;
-            if (attempts >= maxAttempts) {
-                forceFail();
-            } else {
-                alert(`Incorrect combination. You have ${maxAttempts - attempts} attempt(s) remaining.`);
-                updateUI();
-            }
-        }
-    }
-
-    function forceFail() {
-        crisis += 2;
-        showFeedback(false);
-    }
-
-    function showFeedback(isSuccess) {
-        const threat = threats[currentThreatIndex];
-        const modal = document.getElementById('feedbackModal');
-        const title = document.getElementById('feedbackTitle');
-        const answers = document.getElementById('feedbackAnswers');
-        const explanation = document.getElementById('feedbackExplanation');
-
-        modal.style.display = 'flex';
-        explanation.innerText = threat.explanation;
-
-        if (isSuccess) {
-            title.innerText = "✅ Threat Neutralized!";
-            title.style.color = "#4CAF50";
-            answers.innerText = "";
-        } else {
-            title.innerText = "❌ Defenses Breached!";
-            title.style.color = "#d32f2f";
-            answers.innerText = `Required Pillars: ${threat.reqs.join(', ')}`;
-        }
-    }
-
-    function nextRound() {
-        document.getElementById('feedbackModal').style.display = 'none';
-        currentThreatIndex++;
+    <div id="bootScreen" class="game-container" style="text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+        <h1 style="font-size: 32px; margin-bottom: 5px;">SG COMMAND CENTER</h1>
+        <h2 style="color: var(--accent-red); margin-top: 0; letter-spacing: 2px;">SYSTEM LOCKED</h2>
+        <p style="margin-bottom: 30px; font-size: 16px; line-height: 1.5; color: #aaa;">
+            Director, please verify your identity to initiate Total Defence protocols.
+        </p>
         
-        if (crisis >= 10) {
-            endGame(false);
-        } else {
-            drawThreat();
-        }
-    }
+        <div class="minigame-container" style="width: 100%; max-width: 550px;">
+            <div style="font-size: 14px; color: #aaa;">MASTER ACCESS CODE REQUIRED</div>
+            <div class="scrambled-word" id="masterScrambled"></div>
+            <input type="text" class="decrypt-input" id="masterInput" placeholder="ENTER KEYWORD" autocomplete="off">
+            <button class="decrypt-btn" onclick="checkMasterLogin()">AUTHORIZE</button>
+            <div class="error-msg" id="masterError">Access Denied. Incorrect Code.</div>
+            <br>
+            <button class="anagram-hint-btn" onclick="document.getElementById('masterHint').style.display='block'">Need a Hint?</button>
+            <div class="anagram-hint-text" id="masterHint">The core strategy of Singapore's defense: discouraging aggression by instilling fear of the consequences.</div>
+        </div>
+    </div>
 
-    function endGame(win) {
-        const overlay = document.getElementById('overlay');
-        const endTitle = document.getElementById('endTitle');
-        const endDesc = document.getElementById('endDesc');
-        
-        overlay.style.display = "flex";
-        if (win) {
-            endTitle.innerText = "Victory!";
-            endTitle.style.color = "#4CAF50";
-            endDesc.innerText = `You successfully defended the nation! Final Score: ${score}`;
-        } else {
-            endTitle.innerText = "Crisis Overload!";
-            endTitle.style.color = "#d32f2f";
-            endDesc.innerText = "The nation's defenses collapsed. Singapore needs you to be better prepared next time.";
-        }
-    }
+    <div class="game-container" id="mainGame" style="display: none;">
+        <div class="header">
+            <h1>SG Command Center</h1>
+            <div class="room-indicator" id="roomIndicator">Room 1/3<br>Step 1/5</div>
+        </div>
 
-    function updateUI() {
-        document.getElementById('score').innerText = score;
-        document.getElementById('crisisBar').value = crisis;
-        document.getElementById('crisisText').innerText = `${crisis}/10`;
-        document.getElementById('attemptsDisplay').innerText = `Attempts: ${attempts}/${maxAttempts}`;
-
-        if(currentThreatIndex < threats.length) {
-            const threat = threats[currentThreatIndex];
-            document.getElementById('threatTitle').innerText = threat.title;
-            document.getElementById('threatDesc').innerText = threat.desc;
+        <div id="gamePlayArea">
+            <h2 id="scenarioTitle" style="margin-top: 0;">Loading...</h2>
             
-            const reqsDiv = document.getElementById('threatReqs');
-            reqsDiv.innerHTML = "";
-            threat.reqs.forEach(req => {
-                reqsDiv.innerHTML += `<div class="badge Hidden">?</div>`; 
-            });
+            <div class="minigame-container" id="minigameArea">
+                <div style="font-size: 18px; margin-bottom: 5px;">⚠️ ENCRYPTED INTEL INTERCEPTED ⚠️</div>
+                <div style="font-size: 14px; color: #aaa;">Decrypt the keyword below to reveal the crisis scenario and command options.</div>
+                
+                <div class="scrambled-word" id="scrambledWord">L O A D I N G</div>
+                
+                <input type="text" class="decrypt-input" id="decryptInput" placeholder="ENTER KEYWORD" autocomplete="off">
+                <button class="decrypt-btn" onclick="checkDecryption()">DECRYPT</button>
+                <div class="error-msg" id="decryptError">Access Denied. Incorrect Keyword.</div>
+
+                <br>
+                <button class="anagram-hint-btn" onclick="showAnagramHint()">Need a Hint?</button>
+                <div class="anagram-hint-text" id="anagramHintText">Hint goes here</div>
+            </div>
+
+            <div class="scenario-box" id="scenarioDesc"></div>
+
+            <div class="intel-hint" id="intelHintArea">
+                <span>INTEL DECODED:</span> <span id="intelHintText" style="color: white; font-weight: normal;">Hint goes here</span>
+            </div>
+
+            <div class="options-container" id="optionsContainer"></div>
+        </div>
+
+        <div id="outcomeScreen">
+            <h2 class="outcome-title" id="outcomeTitle">Outcome</h2>
+            <div class="outcome-desc" id="outcomeDesc">Explanation goes here.</div>
+            <button class="action-btn" id="nextBtn" onclick="handleNextAction()">Continue</button>
+        </div>
+    </div>
+
+    <script>
+        const rooms = [
+            {
+                title: "Room 1: The Imminent Threat (Terrorism)",
+                steps: [
+                    {
+                        desc: "CRISIS REVEALED: Intelligence suggests an extremist sleeper cell is planning a coordinated explosive attack on a major MRT interchange in exactly 2 hours. You must direct the immediate response to defuse the situation.",
+                        keyword: "SGSECURE", // Not used for decryption here, but kept for data structure consistency
+                        options: [
+                            { text: "Evacuate the entire downtown core immediately using blaring sirens.", isCorrect: false, explanation: "Mass panic ensued. Realizing they were exposed, the terrorists detonated their devices early in the crowded bottlenecks." },
+                            { text: "Wait for the terrorists to arrive at the MRT station to gather concrete legal evidence on CCTV.", isCorrect: false, explanation: "The delay was fatal. By the time visual confirmation was established, the devices were deployed." },
+                            { text: "Discreetly activate the Special Operations Command (SOC) while using SGSecure to issue calm vigilance alerts.", isCorrect: true, explanation: "A swift, targeted response. The SOC apprehended the suspects without triggering a mass panic." }
+                        ]
+                    },
+                    {
+                        desc: "CRISIS REVEALED: The suspects are detained, but one mentions a secondary device hidden in a nearby warehouse. How do you locate it quickly?",
+                        keyword: "CBRE",
+                        anagramHint: "A 4-letter acronym for Chemical, Biological, Radiological, and Explosive.",
+                        hint: "You need the SAF group specializing in Chemical, Biological, Radiological, and Explosive threats.",
+                        options: [
+                            { text: "Carpet bomb the industrial sector to ensure the device is destroyed.", isCorrect: false, explanation: "This caused massive civilian casualties and destroyed our own infrastructure. Military Defence must be precise." },
+                            { text: "Deploy the SAF Chemical, Biological, Radiological and Explosive (CBRE) Defence Group to sweep the identified warehouse.", isCorrect: true, explanation: "Correct. The CBRE experts safely located and neutralized the threat without collateral damage." },
+                            { text: "Ask the public to go into the warehouses to look for suspicious items to save time.", isCorrect: false, explanation: "You put untrained civilians in direct, lethal danger. Civil Defence relies on trained professionals leading the response." }
+                        ]
+                    },
+                    {
+                        desc: "CRISIS REVEALED: The physical threat is neutralized, but rumors are spreading online that a third attack is happening right now at a mall. Panic is rising.",
+                        keyword: "FACTS", 
+                        options: [
+                            { text: "Issue an official statement via trusted government channels and media outlets debunking the fake news.", isCorrect: true, explanation: "Psychological Defence in action. Providing clear, factual information calms the public and prevents panic." },
+                            { text: "Shut down the entire internet in Singapore to stop the rumors from spreading.", isCorrect: false, explanation: "This crippled the economy and caused even more panic as citizens couldn't contact their loved ones." },
+                            { text: "Ignore the rumors. The truth will eventually come out on its own.", isCorrect: false, explanation: "In a vacuum of information, fear takes over. You failed to protect the psychological resilience of the nation." }
+                        ]
+                    },
+                    {
+                        desc: "CRISIS REVEALED: Intelligence reveals the mastermind is trying to flee the country. What is your border strategy?",
+                        keyword: "ICA",
+                        anagramHint: "A 3-letter acronym for the authority that manages immigration and checkpoints.",
+                        hint: "Rely on the authority responsible for securing our borders and checkpoints.",
+                        options: [
+                            { text: "Close all borders permanently. No one enters or leaves Singapore ever again.", isCorrect: false, explanation: "An extreme overreaction that instantly collapsed our trade-dependent economy." },
+                            { text: "Let them leave. It's better they are out of our country.", isCorrect: false, explanation: "You allowed a terrorist to escape justice, leaving them free to plan another attack from abroad." },
+                            { text: "Enhance Immigration & Checkpoints Authority (ICA) biometric screening and share the suspect's profile with Interpol.", isCorrect: true, explanation: "Strong Border Security combined with international cooperation ensured the mastermind was apprehended at the checkpoint." }
+                        ]
+                    },
+                    {
+                        desc: "CRISIS REVEALED: The crisis is over. However, the terrorists belonged to a specific ethnic group, and racial tensions are rising in the community.",
+                        keyword: "IRCC", 
+                        options: [
+                            { text: "Segregate communities based on race to prevent them from fighting.", isCorrect: false, explanation: "This destroyed decades of racial harmony and created deeply divided, resentful communities." },
+                            { text: "Mobilize grassroots leaders and Inter-Racial and Religious Confidence Circles (IRCCs) to facilitate community dialogues.", isCorrect: true, explanation: "Excellent Social Defence. By bringing people together to talk, you reinforced trust and unity, preventing the terrorists from dividing the nation." },
+                            { text: "Ban all public gatherings indefinitely so people cannot argue.", isCorrect: false, explanation: "You suppressed the symptoms but let the underlying mistrust grow, weakening society's resilience." }
+                        ]
+                    }
+                ]
+            },
+            {
+                title: "Room 2: The Invisible Infiltration (Cyber Espionage)",
+                steps: [
+                    {
+                        desc: "CRISIS REVEALED: A highly sophisticated foreign entity has breached a critical government database containing defense blueprints. The data extraction is ongoing.",
+                        keyword: "ISOLATE", 
+                        options: [
+                            { text: "Publicly accuse a specific superpower immediately, demanding they stop.", isCorrect: false, explanation: "Without undeniable proof, your reckless accusation sparked an international crisis." },
+                            { text: "Isolate the compromised servers, deploy the Cyber Security Agency (CSA) to patch the vulnerability.", isCorrect: true, explanation: "Textbook Digital Defence. By isolating the threat, you protected the remaining data." },
+                            { text: "Sever the undersea internet cables, disconnecting the entire country from the web.", isCorrect: false, explanation: "The cure was worse than the disease, completely collapsing our Economic Defence." }
+                        ]
+                    },
+                    {
+                        desc: "CRISIS REVEALED: The CSA discovers the malware is polymorphic (it changes its code constantly). Standard antiviruses are failing.",
+                        keyword: "AI",
+                        anagramHint: "A 2-letter acronym for Artificial Intelligence.",
+                        hint: "Use advanced Artificial Intelligence tools to hunt down the adapting malware.",
+                        options: [
+                            { text: "Reboot all government computers. Maybe it will clear the memory.", isCorrect: false, explanation: "Rebooting did nothing to remove the deeply embedded malware, and you lost valuable diagnostic data." },
+                            { text: "Pay a shady hacker group online to counter-hack the malware.", isCorrect: false, explanation: "You funded criminals and gave them access to national systems. The situation worsened." },
+                            { text: "Utilize AI-driven threat hunting tools to identify the malware's behavior patterns and block its Command & Control server.", isCorrect: true, explanation: "By adapting with advanced technology, you successfully neutralized the active threat." }
+                        ]
+                    },
+                    {
+                        desc: "CRISIS REVEALED: The attackers, frustrated, shift their target to Singapore's financial institutions to cause economic chaos.",
+                        keyword: "BACKUPS", 
+                        options: [
+                            { text: "Order all banks to freeze all accounts so no money can move.", isCorrect: false, explanation: "This caused immediate domestic panic and destroyed international confidence in Singapore's financial hub." },
+                            { text: "Mandate elevated cybersecurity protocols via the Monetary Authority of Singapore (MAS) and activate offline data backups.", isCorrect: true, explanation: "Economic Defence maintained. The banks stayed operational while shielding their core ledgers from corruption." },
+                            { text: "Tell the private banks it is their own problem to solve.", isCorrect: false, explanation: "National security requires public-private partnership. The banks were overwhelmed and the economy crashed." }
+                        ]
+                    },
+                    {
+                        desc: "CRISIS REVEALED: Digital forensics definitively trace the attack back to a specific state actor. They deny involvement.",
+                        keyword: "DIPLOMACY",
+                        anagramHint: "The skill of managing international relations, typically by a country's representatives abroad.",
+                        hint: "Use international relations, alliances, and joint statements, not kinetic missiles.",
+                        options: [
+                            { text: "Launch a destructive military missile strike on their cyber-command headquarters.", isCorrect: false, explanation: "You escalated a cyber incident into a kinetic war. Deterrence failed." },
+                            { text: "Work with ASEAN and international allies to issue a joint diplomatic statement condemning the cyber-norm violation.", isCorrect: true, explanation: "Strategic diplomacy. By rallying the international community, you applied pressure without firing a single shot." },
+                            { text: "Ignore it. They didn't get the most important files anyway.", isCorrect: false, explanation: "Appeasement invites further attacks. You signaled that Singapore is a soft target." }
+                        ]
+                    },
+                    {
+                        desc: "CRISIS REVEALED: The threat is repelled. How do you ensure this doesn't happen again?",
+                        keyword: "HYGIENE", 
+                        options: [
+                            { text: "Ban all foreign software and only use locally made computers.", isCorrect: false, explanation: "This isolated Singapore from global technological advancements, severely stunting our growth." },
+                            { text: "Launch a nationwide cyber hygiene campaign for citizens and businesses to prevent phishing.", isCorrect: true, explanation: "Total Defence relies on everyone. Educating the public hardens the nation against future digital intrusions." },
+                            { text: "Make internet access read-only for the general public.", isCorrect: false, explanation: "An authoritarian move that destroyed the digital economy and civil liberties." }
+                        ]
+                    }
+                ]
+            },
+            {
+                title: "Room 3: The Territorial Intimidation (Aggressive State Actor)",
+                steps: [
+                    {
+                        desc: "CRISIS REVEALED: Radar shows a larger neighboring state conducting aggressive, unannounced naval drills right on the edge of Singapore's territorial waters.",
+                        keyword: "NAVY", 
+                        options: [
+                            { text: "Ignore the drills and tell commercial ships to find alternative routes.", isCorrect: false, explanation: "Appeasement failed. Yielding sovereign rights invited further bullying." },
+                            { text: "Deploy the Republic of Singapore Navy (RSN) to patrol borders without engaging, and open diplomatic channels.", isCorrect: true, explanation: "Perfect deterrence. The RSN showed readiness while diplomacy kept tensions from boiling over." },
+                            { text: "Fire warning shots across the bows of the foreign vessels.", isCorrect: false, explanation: "Catastrophic escalation. Your warning shots started an unnecessary war." }
+                        ]
+                    },
+                    {
+                        desc: "CRISIS REVEALED: In retaliation for our patrols, the foreign state threatens to block vital food and sand exports to Singapore.",
+                        keyword: "STOCKPILES",
+                        anagramHint: "Large accumulated reserves of goods or materials kept for an emergency.",
+                        hint: "Tap into our national reserves of essential goods kept for emergencies.",
+                        options: [
+                            { text: "Surrender to their demands to keep the food flowing.", isCorrect: false, explanation: "You compromised national sovereignty. They now know they can control Singapore through blackmail." },
+                            { text: "Threaten to bomb their commercial ports if they stop the exports.", isCorrect: false, explanation: "Aggressive military threats isolated Singapore globally and validated the foreign state's aggression." },
+                            { text: "Tap into national stockpiles immediately and activate diversified supply chains from other countries.", isCorrect: true, explanation: "Economic Defence saved the day. By showing we don't rely solely on them, their blackmail tactic became useless." }
+                        ]
+                    },
+                    {
+                        desc: "CRISIS REVEALED: The foreign state begins broadcasting propaganda into Singapore, claiming our land historically belongs to them.",
+                        keyword: "UNITY", 
+                        options: [
+                            { text: "Reinforce National Education messaging, reminding citizens of our sovereign history and the importance of unity.", isCorrect: true, explanation: "Strong Psychological Defence. An educated, united populace will not be swayed by foreign interference." },
+                            { text: "Broadcast our own fake news into their country to confuse their citizens.", isCorrect: false, explanation: "Engaging in a disinformation war eroded our international standing and moral high ground." },
+                            { text: "Arrest anyone caught listening to the broadcasts.", isCorrect: false, explanation: "Heavy-handed policing caused domestic resentment and played right into the enemy's narrative of a fractured society." }
+                        ]
+                    },
+                    {
+                        desc: "CRISIS REVEALED: Tensions escalate. The foreign state begins massing troops near the border.",
+                        keyword: "ALLIANCES",
+                        anagramHint: "Unions or associations formed for mutual benefit, especially between countries.",
+                        hint: "Conducting joint exercises with friendly nations builds strong defense _________.",
+                        options: [
+                            { text: "Disband the SAF to prove we have no hostile intentions.", isCorrect: false, explanation: "You completely removed our Military Defence. They invaded the next day." },
+                            { text: "Sign a unilateral defense treaty, becoming a puppet state to a rival superpower.", isCorrect: false, explanation: "You traded one threat for another, losing Singapore's independent foreign policy and sovereignty." },
+                            { text: "Conduct planned, joint military exercises with friendly international nations to signal our robust defense ties.", isCorrect: true, explanation: "Deterrence through alliances. Showing strong partnerships makes the aggressor recalculate the cost of an invasion." }
+                        ]
+                    },
+                    {
+                        desc: "CRISIS REVEALED: The crisis peaks at an emergency ASEAN summit. Their leader aggressively demands concessions in front of the world.",
+                        keyword: "UNCLOS", 
+                        options: [
+                            { text: "Walk out of the summit in protest.", isCorrect: false, explanation: "You abandoned the diplomatic battlefield, allowing them to control the narrative." },
+                            { text: "Stand firm, reiterate Singapore's commitment to international law (UNCLOS), and propose mutual economic cooperation instead.", isCorrect: true, explanation: "Masterful diplomacy. You held the line on sovereignty while offering a peaceful, prosperous off-ramp for both nations." },
+                            { text: "Challenge their leader to a physical fight to show strength.", isCorrect: false, explanation: "You embarrassed the nation on the global stage and destroyed our diplomatic credibility." }
+                        ]
+                    }
+                ]
+            }
+        ];
+
+        let currentRoomIndex = 0;
+        let currentStepIndex = 0;
+        let state = "PLAYING"; 
+        let currentKeyword = "";
+
+        // Scramble Function
+        function scramble(word) {
+            let a = word.split(""), n = a.length;
+            for(let i = n - 1; i > 0; i--) {
+                let j = Math.floor(Math.random() * (i + 1));
+                let tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+            }
+            return a.join(" ");
         }
 
-        const handDiv = document.getElementById('playerHand');
-        handDiv.innerHTML = "";
-        hand.forEach((card, i) => {
-            handDiv.innerHTML += `<div class="card ${card}" onclick="playCard(${i})">${card}</div>`;
+        // Setup Master Login Screen
+        document.getElementById('masterScrambled').innerText = scramble("DETERRENCE");
+
+        document.getElementById("masterInput").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                checkMasterLogin();
+            }
         });
 
-        const playDiv = document.getElementById('playArea');
-        playDiv.innerHTML = "";
-        played.forEach((card, i) => {
-            playDiv.innerHTML += `<div class="card ${card}" onclick="unplayCard(${i})">${card}</div>`;
-        });
-    }
+        function checkMasterLogin() {
+            const input = document.getElementById('masterInput').value.toUpperCase().trim();
+            if (input === "DETERRENCE") {
+                document.getElementById('bootScreen').style.display = "none";
+                document.getElementById('mainGame').style.display = "block";
+                loadStep(); // Start the first room only after login
+            } else {
+                document.getElementById('masterError').style.display = "block";
+                setTimeout(() => { document.getElementById('masterError').style.display = "none"; }, 2000);
+            }
+        }
 
-    init();
-</script>
-    </body>
+        // Load Individual Step
+        function loadStep() {
+            const room = rooms[currentRoomIndex];
+            const step = room.steps[currentStepIndex];
+            
+            document.getElementById('roomIndicator').innerHTML = `Room ${currentRoomIndex + 1}/3<br>Step ${currentStepIndex + 1}/5`;
+            document.getElementById('scenarioTitle').innerText = room.title;
+            document.getElementById('scenarioDesc').innerText = step.desc;
+
+            // Prepare the options buttons
+            const optionsContainer = document.getElementById('optionsContainer');
+            optionsContainer.innerHTML = '';
+            let shuffledOptions = [...step.options].sort(() => Math.random() - 0.5);
+            shuffledOptions.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerHTML = `<span>[Option ${String.fromCharCode(65 + index)}]</span> ${opt.text}`;
+                btn.onclick = () => selectOption(opt);
+                optionsContainer.appendChild(btn);
+            });
+
+            // LOGIC CHECK: Is this Step 2 (index 1) or Step 4 (index 3)?
+            if (currentStepIndex === 1 || currentStepIndex === 3) {
+                // MINIGAME STEP
+                document.getElementById('scenarioDesc').style.display = "none";
+                optionsContainer.style.display = "none";
+                document.getElementById('intelHintArea').style.display = "none";
+                
+                currentKeyword = step.keyword;
+                document.getElementById('scrambledWord').innerText = scramble(currentKeyword);
+                document.getElementById('decryptInput').value = "";
+                document.getElementById('decryptError').style.display = "none";
+                document.getElementById('anagramHintText').style.display = "none";
+                document.getElementById('anagramHintText').innerText = step.anagramHint;
+                document.getElementById('intelHintText').innerText = step.hint;
+                
+                document.getElementById('minigameArea').style.display = "block";
+            } else {
+                // REGULAR STORY STEP (No Minigame)
+                document.getElementById('minigameArea').style.display = "none";
+                document.getElementById('intelHintArea').style.display = "none";
+                
+                document.getElementById('scenarioDesc').style.display = "block";
+                optionsContainer.style.display = "flex";
+            }
+        }
+
+        function showAnagramHint() {
+            document.getElementById('anagramHintText').style.display = "block";
+        }
+
+        // Allow pressing Enter to submit step decryption
+        document.getElementById("decryptInput").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                checkDecryption();
+            }
+        });
+
+        function checkDecryption() {
+            const input = document.getElementById('decryptInput').value.toUpperCase().trim();
+            if (input === currentKeyword) {
+                // Success! Hide minigame, SHOW scenario, hint, and options
+                document.getElementById('minigameArea').style.display = "none";
+                document.getElementById('scenarioDesc').style.display = "block";
+                document.getElementById('intelHintArea').style.display = "block";
+                document.getElementById('optionsContainer').style.display = "flex";
+            } else {
+                document.getElementById('decryptError').style.display = "block";
+                setTimeout(() => { document.getElementById('decryptError').style.display = "none"; }, 2000);
+            }
+        }
+
+        function selectOption(option) {
+            const outcomeScreen = document.getElementById('outcomeScreen');
+            const outcomeTitle = document.getElementById('outcomeTitle');
+            const outcomeDesc = document.getElementById('outcomeDesc');
+            const nextBtn = document.getElementById('nextBtn');
+
+            outcomeScreen.style.display = 'flex';
+            outcomeDesc.innerText = option.explanation;
+
+            if (option.isCorrect) {
+                outcomeTitle.className = "outcome-title success-text";
+                
+                if (currentStepIndex === rooms[currentRoomIndex].steps.length - 1) {
+                    outcomeTitle.innerText = "ROOM UNLOCKED";
+                    state = "ROOM_WIN";
+                    if (currentRoomIndex === rooms.length - 1) {
+                        nextBtn.innerText = "Complete Simulation";
+                        state = "GAME_WIN";
+                    } else {
+                        nextBtn.innerText = "Enter Next Room";
+                    }
+                } else {
+                    outcomeTitle.innerText = "CORRECT ACTION";
+                    state = "PLAYING";
+                    nextBtn.innerText = "Next Step";
+                }
+            } else {
+                outcomeTitle.innerText = "PROTOCOL FAILED";
+                outcomeTitle.className = "outcome-title fail-text";
+                state = "STEP_FAIL";
+                nextBtn.innerText = "Restart Room Protocol";
+            }
+        }
+
+        function handleNextAction() {
+            const outcomeScreen = document.getElementById('outcomeScreen');
+            outcomeScreen.style.display = 'none';
+
+            if (state === "STEP_FAIL") {
+                currentStepIndex = 0;
+                loadStep();
+            } else if (state === "PLAYING") {
+                currentStepIndex++;
+                loadStep();
+            } else if (state === "ROOM_WIN") {
+                currentRoomIndex++;
+                currentStepIndex = 0;
+                loadStep();
+            } else if (state === "GAME_WIN") {
+                document.getElementById('gamePlayArea').innerHTML = `
+                    <h2 style="color: #10b981; text-align:center; font-size: 30px;">COMMAND CENTER UNLOCKED</h2>
+                    <div class="scenario-box" style="text-align:center; font-size: 18px;">
+                        Congratulations, Director. You have successfully navigated all 15 crisis points.<br><br>
+                        By balancing Military strength, Civil preparedness, Economic resilience, Social harmony, Psychological fortitude, and Digital security, you have proven that Total Defence is the ultimate deterrent.<br><br>
+                        Singapore remains secure.
+                    </div>
+                    <div style="text-align:center;">
+                        <button class="action-btn" onclick="location.reload()">Play Again</button>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
 </html>
